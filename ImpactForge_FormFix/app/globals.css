@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0a0c10;
+  color: #ede7d8;
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* Subtle animated noise/grain overlay for the whole app */
+.grain-overlay {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Faint blueprint grid used behind hero / sections */
+.grid-field {
+  background-image:
+    linear-gradient(to right, rgba(237, 231, 216, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(237, 231, 216, 0.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+.radial-fade {
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(242, 194, 48, 0.10), transparent 70%);
+}
+
+::selection {
+  background: #f2c230;
+  color: #1b1a16;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0c10;
+}
+::-webkit-scrollbar-thumb {
+  background: #242a34;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333b49;
+}
+
+.stamp-text {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.paper-shadow {
+  box-shadow:
+    0 1px 1px rgba(0,0,0,0.15),
+    0 10px 30px -10px rgba(0,0,0,0.6),
+    0 30px 60px -30px rgba(0,0,0,0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Dark glassmorphism used across cards, panels and the nav */
+.glass-card {
+  background: rgba(23, 27, 35, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-nav {
+  background: rgba(10, 12, 16, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Soft ambient glow used on hover/focus states and accents */
+.glow-highlighter {
+  box-shadow: 0 0 0 1px rgba(242, 194, 48, 0.12), 0 8px 40px -8px rgba(242, 194, 48, 0.28);
+}
+
+.glowing-line {
+  background: linear-gradient(to bottom, transparent, rgba(242, 194, 48, 0.55), transparent);
+  box-shadow: 0 0 14px rgba(242, 194, 48, 0.35);
+}
