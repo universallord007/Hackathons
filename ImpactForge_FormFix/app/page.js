@@ -20,6 +20,7 @@ import ResultCard from "./components/ResultCard";
 import ChecklistPanel from "./components/ChecklistPanel";
 import ScanIllustration from "./components/ScanIllustration";
 import AmbientBackground from "./components/AmbientBackground";
+import { extractTextFromImage } from "./lib/ocr-client";
 
 const TIMELINE = [
   {
@@ -30,7 +31,7 @@ const TIMELINE = [
   {
     icon: BrainCircuit,
     title: "Simplify",
-    body: "Our AI agent rewrites it at a grade-8 reading level and separates what's mandatory from optional.",
+    body: "Groq's Llama 3.3 rewrites it at a grade-8 reading level and separates what's mandatory from optional.",
   },
   {
     icon: ListChecks,
@@ -46,6 +47,7 @@ export default function Home() {
 
   const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
+  // pipeline state
   const [stage, setStage] = useState("idle"); // idle | ocr | simplify | done
   const [error, setError] = useState(null);
 
@@ -64,25 +66,14 @@ export default function Home() {
     setStage("ocr");
 
     try {
-      const fd = new FormData();
-      fd.append("image", file);
-      fd.append("lang", "eng");
-
-      const ocrRes = await fetch("/api/ocr", { method: "POST", body: fd });
-      const ocrJson = await ocrRes.json();
-
-      if (!ocrRes.ok) {
-        setError(ocrJson.message || "We couldn't read this image.");
-        setStage("idle");
-        return;
-      }
-      setOcr(ocrJson);
+      const ocrResult = await extractTextFromImage(file, "eng");
+      setOcr(ocrResult);
       setStage("simplify");
 
       const simRes = await fetch("/api/simplify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: ocrJson.text }),
+        body: JSON.stringify({ text: ocrResult.text }),
       });
       const simJson = await simRes.json();
 
@@ -97,7 +88,7 @@ export default function Home() {
       setStage("done");
     } catch (e) {
       console.error(e);
-      setError("Something went wrong talking to the server. Please try again.");
+      setError(e.message || "Something went wrong reading this image. Please try again.");
       setStage("idle");
     }
   }
@@ -147,7 +138,7 @@ export default function Home() {
     <main ref={heroRef} className="relative min-h-screen text-paper">
       <AmbientBackground />
 
-      {/* ============ TOP APP BAR ============ */}
+      {/* ============ TOP APP BAR (glass, sticky) ============ */}
       <header className="glass-nav sticky top-0 z-40 border-b border-line/60">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-10">
           <button
@@ -226,7 +217,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ HOW IT WORKS ============ */}
+      {/* ============ HOW IT WORKS (vertical connected timeline) ============ */}
       <section ref={howRef} className="relative border-t border-line/60 py-20 sm:py-28">
         <div className="mx-auto max-w-3xl px-6 sm:px-10">
           <div className="mb-16 text-center">
@@ -283,7 +274,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ WHAT IT DOES (bento) ============ */}
+      {/* ============ WHAT IT DOES (bento grid) ============ */}
       <section className="relative border-t border-line/60 py-20 sm:py-28">
         <div className="mx-auto max-w-5xl px-6 sm:px-10">
           <div className="mb-12 text-center">
@@ -422,7 +413,7 @@ export default function Home() {
             <span className="rounded bg-highlighter px-1 text-ink">Fix</span>
           </div>
           <p className="font-mono text-[11px] text-mist">plain language, not less meaning.</p>
-          <a
+          
             href="https://dipcodesdev.vercel.app/"
             target="_blank"
             rel="noreferrer"
