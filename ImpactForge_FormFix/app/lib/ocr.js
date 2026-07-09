@@ -1,18 +1,22 @@
+// By removing "require" and "import" of tesseract on the server side,
+// Vercel's backend compiler will completely ignore it, eliminating the error.
+
 export async function extractTextFromImage(imageBuffer, lang = "eng") {
+  // If this code accidentally runs on Vercel's server side, return an error safely
+  if (typeof window === "undefined") {
+    throw new Error("OCR must be executed on the client side to bypass serverless constraints.");
+  }
+
+  // Dynamically load tesseract directly in the browser's thread
+  const { createWorker } = await import("tesseract.js");
   let worker = null;
-  
+
   try {
-    // 1. Clean dynamic import that skips Next.js 16 build-time analysis
-    const tesseractModule = await import("tesseract.js");
-    
-    // 2. Direct initialization pointing straight to the v6.0.1 assets
-    worker = await tesseractModule.createWorker({
-      workerPath: "https://jsdelivr.net",
-      corePath: "https://jsdelivr.net",
-      logger: (m) => console.log("[Tesseract Next16 Log]:", m),
+    worker = await createWorker({
+      logger: (m) => console.log("[Browser OCR Log]:", m),
     });
 
-    // 3. Extract text output mapping
+    // Process the image data directly in the browser window
     const { data } = await worker.recognize(imageBuffer, { lang });
 
     const text = (data.text || "").trim();
@@ -24,13 +28,10 @@ export async function extractTextFromImage(imageBuffer, lang = "eng") {
       isLowConfidence: confidence < 60,
       isEmpty: text.length < 10,
     };
-    
   } catch (error) {
-    console.error("OCR Next.js 16 Runtime Error:", error);
+    console.error("Browser OCR Error:", error);
     throw error;
-    
   } finally {
-    // 4. Terminate immediately to avoid Vercel Function timeouts
     if (worker) {
       await worker.terminate();
     }
