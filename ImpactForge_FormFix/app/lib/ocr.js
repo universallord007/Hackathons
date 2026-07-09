@@ -1,37 +1,44 @@
 import { createWorker } from "tesseract.js";
 
-const workerCache = new Map();
-
-async function getWorker(lang = "eng") {
-  if (!workerCache.has(lang)) {
-    const worker = await createWorker(lang);
-    workerCache.set(lang, worker);
-  }
-
-  return workerCache.get(lang);
-}
-
 export async function extractTextFromImage(imageBuffer, lang = "eng") {
-  const worker = await getWorker(lang);
-  const { data } = await worker.recognize(imageBuffer);
+  let worker = null;
+  
+  try {
+    // 1. Initialize the worker using v6.0.1 CDN endpoints
+    // Note: Do not pass 'lang' here for v6 serverless initialization
+    worker = await createWorker({
+      workerPath: "https://jsdelivr.net",
+      corePath: "https://jsdelivr.net",
+      logger: (m) => console.log("[Tesseract Log]:", m),
+    });
 
-  const text = (data.text || "").trim();
-  const confidence = data.confidence ?? 0; // 0-100
+    // 2. Pass the language parameter directly inside recognize() for v6
+    const { data } = await worker.recognize(imageBuffer, { lang });
 
-  return {
-    text,
-    confidence,
-    isLowConfidence: confidence < 60,
-    isEmpty: text.length < 10,
-  };
+    const text = (data.text || "").trim();
+    const confidence = data.confidence ?? 0; // Score from 0 to 100
+
+    // Return the exact data structure your website expects
+    return {
+      text,
+      confidence,
+      isLowConfidence: confidence < 60,
+      isEmpty: text.length < 10,
+    };
+    
+  } catch (error) {
+    console.error("OCR Serverless Execution Error:", error);
+    throw error;
+    
+  } finally {
+    // 3. Terminate cleanly to prevent Vercel 60-second timeouts
+    if (worker) {
+      await worker.terminate();
+    }
+  }
 }
 
-// Optional: call this once on server shutdown if you want a clean exit.
-// Not required for Vercel's serverless model.
+// Kept here to prevent breaking import references elsewhere in your project
 export async function terminateAllWorkers() {
-  for (const workerPromise of workerCache.values()) {
-    const worker = await workerPromise;
-    await worker.terminate();
-  }
-  workerCache.clear();
+  return true;
 }
