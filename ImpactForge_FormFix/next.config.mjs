@@ -1,14 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Configures the server environment to keep tesseract unbundled
   serverExternalPackages: ["tesseract.js"],
   
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // This completely shields Vercel from trying to look inside the tesseract folder
-      config.externals = [...(config.externals || []), 'tesseract.js'];
-    }
-    return config;
-  },
+  // Silences the Next.js 16 Turbopack migration warning flag
+  turbopack: {},
 };
 
 export default nextConfig;
