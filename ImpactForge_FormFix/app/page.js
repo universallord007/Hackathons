@@ -413,7 +413,7 @@ export default function Home() {
             <span className="rounded bg-highlighter px-1 text-ink">Fix</span>
           </div>
           <p className="font-mono text-[11px] text-mist">plain language, not less meaning.</p>
-          
+          <a
             href="https://dipcodesdev.vercel.app/"
             target="_blank"
             rel="noreferrer"
