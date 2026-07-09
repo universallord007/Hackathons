@@ -2,17 +2,17 @@ export async function extractTextFromImage(imageBuffer, lang = "eng") {
   let worker = null;
   
   try {
-    // 1. Dynamic import completely completely hides the package from Vercel's compile scan
+    // 1. Clean dynamic import that skips Next.js 16 build-time analysis
     const tesseractModule = await import("tesseract.js");
     
-    // 2. Initialize using your full v6.0.1 CDN paths
+    // 2. Direct initialization pointing straight to the v6.0.1 assets
     worker = await tesseractModule.createWorker({
       workerPath: "https://jsdelivr.net",
       corePath: "https://jsdelivr.net",
-      logger: (m) => console.log("[Tesseract Log]:", m),
+      logger: (m) => console.log("[Tesseract Next16 Log]:", m),
     });
 
-    // 3. Process the file data using the v6 parameters
+    // 3. Extract text output mapping
     const { data } = await worker.recognize(imageBuffer, { lang });
 
     const text = (data.text || "").trim();
@@ -26,11 +26,11 @@ export async function extractTextFromImage(imageBuffer, lang = "eng") {
     };
     
   } catch (error) {
-    console.error("OCR Runtime Error:", error);
+    console.error("OCR Next.js 16 Runtime Error:", error);
     throw error;
     
   } finally {
-    // 4. Terminate cleanly to avoid 60-second timeouts
+    // 4. Terminate immediately to avoid Vercel Function timeouts
     if (worker) {
       await worker.terminate();
     }
